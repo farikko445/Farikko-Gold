@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Locus Gold / Farikko</title>
+    <title>Farikko Golds - Black Russia Simulator</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg-color: #000000;
-            --card-bg: #121212;
+            --card-bg: #111111;
             --accent-red: #ff3b30;
             --accent-blue: #007aff;
             --accent-gold: #ffcc00;
             --text-main: #ffffff;
             --text-gray: #888888;
+            --nav-bg: rgba(15, 15, 15, 0.95);
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -30,113 +31,92 @@
             user-select: none;
         }
 
-        /* Шапка с балансом */
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            z-index: 10;
         }
         .header-item { display: flex; flex-direction: column; }
-        .label { color: var(--text-gray); font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .value { font-size: 24px; font-weight: 900; font-style: italic; }
+        .label { color: var(--text-gray); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .value { font-size: 26px; font-weight: 900; font-style: italic; letter-spacing: -1px; }
         .blue-text { color: var(--accent-blue); }
 
-        /* Контент страниц */
-        .page { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+        /* Container for pages */
+        .content-area { flex-grow: 1; position: relative; width: 100%; overflow-y: auto; padding-bottom: 100px; }
+        .page { display: none; flex-direction: column; width: 100%; animation: fadeIn 0.3s ease; }
         .page.active { display: flex; }
 
-        /* Главная: Кнопка клика */
-        .click-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-        }
-        .main-circle {
-            width: 240px;
-            height: 240px;
-            background: radial-gradient(circle, #222 0%, #000 70%);
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Page: Игра */
+        .click-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; }
+        .br-logo-btn {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #222 0%, #080808 80%);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 0 50px rgba(255, 59, 48, 0.2);
-            border: 2px solid #1a1a1a;
-            position: relative;
+            border: 3px solid #1a1a1a;
+            box-shadow: 0 0 40px rgba(255, 59, 48, 0.15);
+            cursor: pointer;
+            transition: transform 0.05s;
         }
-        .main-circle span { font-size: 80px; font-weight: 900; color: var(--accent-red); font-style: italic; }
+        .br-logo-btn:active { transform: scale(0.92); }
+        .br-logo-btn span { font-size: 80px; font-weight: 900; color: var(--accent-red); font-style: italic; text-shadow: 0 0 20px rgba(255, 59, 48, 0.5); }
         
-        .exchange-info { margin-top: 40px; color: var(--accent-blue); font-weight: bold; font-size: 12px; }
-        .input-group { margin-top: 15px; width: 100%; display: flex; gap: 10px; }
-        input {
-            background: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            flex-grow: 1;
+        .exchange-box { background: var(--card-bg); border-radius: 20px; padding: 20px; width: 100%; margin-top: 30px; border: 1px solid #222; }
+        .exchange-title { color: var(--accent-blue); text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 15px; }
+
+        /* Inputs & Buttons */
+        .input-row { display: flex; gap: 10px; }
+        input, select {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 14px; color: white; flex-grow: 1; outline: none; font-size: 14px;
         }
-        .btn-red {
-            background: linear-gradient(to bottom, #ff4b2b, #ff416c);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            padding: 10px 25px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+        .btn-action {
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+            border: none; border-radius: 12px; color: white; padding: 12px 20px;
+            font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px;
         }
 
-        /* Кейсы */
+        /* Page: Кейсы */
         .case-card {
-            background: var(--card-bg);
-            width: 100%;
-            border-radius: 25px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-            border-left: 4px solid var(--accent-gray);
+            background: var(--card-bg); border-radius: 20px; padding: 18px;
+            margin-bottom: 12px; display: flex; justify-content: space-between;
+            align-items: center; border-left: 5px solid var(--accent-red);
         }
-        .case-info h3 { margin: 0; font-size: 18px; text-transform: uppercase; }
-        .case-info p { margin: 5px 0 0; color: var(--text-gray); font-size: 12px; }
-        .case-progress { color: var(--accent-blue); font-size: 11px; margin-top: 5px; }
+        .case-info h3 { margin: 0; font-size: 16px; text-transform: uppercase; font-style: italic; }
+        .case-info p { margin: 4px 0; color: var(--text-gray); font-size: 11px; }
+        .prog { color: var(--accent-blue); font-size: 10px; font-weight: bold; }
 
-        /* Нижнее меню */
-        .nav {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: rgba(20, 20, 20, 0.95);
-            border-radius: 25px;
-            height: 70px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid #222;
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-gray);
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            text-decoration: none;
-        }
-        .nav-item.active { color: var(--accent-red); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        /* Page: Статистика */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 15px; border: 1px solid #222; }
+        .stat-num { font-size: 20px; font-weight: 900; color: var(--accent-red); margin-top: 5px; }
+        .stat-list { margin-top: 20px; width: 100%; }
+        .stat-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #222; font-size: 14px; }
 
-        /* Стили для вкладок */
-        .case-yellow { border-left-color: var(--accent-gold); }
-        .case-blue { border-left-color: var(--accent-blue); }
-        .case-gray { border-left-color: #555; }
+        /* Nav Bar */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 15px; right: 15px;
+            background: var(--nav-bg); border-radius: 22px; height: 75px;
+            display: flex; justify-content: space-around; align-items: center;
+            border: 1px solid #222; backdrop-filter: blur(15px); z-index: 100;
+        }
+        .nav-link {
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--text-gray); text-decoration: none; font-size: 9px; font-weight: bold;
+        }
+        .nav-link.active { color: var(--accent-red); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+
+        /* Colors for cases */
+        .c-yellow { border-left-color: var(--accent-gold); }
+        .c-blue { border-left-color: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -144,82 +124,100 @@
     <div class="header">
         <div class="header-item">
             <span class="label">Вирты</span>
-            <span class="value"><span id="virt-balance">0</span> ₽</span>
+            <span class="value"><span id="virts">0</span> ₽</span>
         </div>
         <div class="header-item" style="align-items: flex-end;">
             <span class="label blue-text">Black Coins</span>
-            <span class="value blue-text"><span id="bc-balance">0</span></span>
+            <span class="value blue-text"><span id="bc">0</span></span>
         </div>
     </div>
 
-    <div id="page-game" class="page active">
-        <div class="click-area">
-            <div class="main-circle" onclick="tap()">
-                <span>BR</span>
+    <div class="content-area">
+        <div id="game" class="page active">
+            <div class="click-container">
+                <div class="br-logo-btn" onclick="tap()">
+                    <span>BR</span>
+                </div>
             </div>
-            <div class="exchange-info">ОБМЕН 1.000.000 ₽ НА 1 BC</div>
-            <div class="input-group">
-                <input type="number" id="ex-amount" placeholder="Сумма ₽">
-                <button class="btn-red" onclick="exchange()">ОБМЕН</button>
+            <div class="exchange-box">
+                <div class="exchange-title">ОБМЕН 1.000.000 ₽ НА 1 BC</div>
+                <div class="input-row">
+                    <input type="number" id="ex-val" placeholder="Сумма вирт">
+                    <button class="btn-action" onclick="exchange()">Обмен</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="cases" class="page">
+            <div class="case-card">
+                <div class="case-info">
+                    <h3>Кейс «Бомж»</h3>
+                    <p>Награда: 1-5 BC</p>
+                </div>
+                <button class="btn-action" onclick="openCase('bomzh')">Открыть</button>
+            </div>
+            <div class="case-card c-blue">
+                <div class="case-info">
+                    <h3>Кейс «Перекуп»</h3>
+                    <p>Награда: 25-50 BC</p>
+                    <div class="prog" id="p-per">Прогресс: 0/3 ADS</div>
+                </div>
+                <button class="btn-action" onclick="handleAd('per', 3)">Смотреть</button>
+            </div>
+            <div class="case-card c-yellow">
+                <div class="case-info">
+                    <h3>Кейс «Владелец ТК»</h3>
+                    <p>Награда: 50-150 BC</p>
+                    <div class="prog" id="p-tk">Прогресс: 0/5 ADS</div>
+                </div>
+                <button class="btn-action" onclick="handleAd('tk', 5)">Смотреть</button>
+            </div>
+        </div>
+
+        <div id="stats" class="page">
+            <h2 style="font-style: italic;">СТАТИСТИКА</h2>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="label">Всего кейсов</div>
+                    <div class="stat-num" id="stat-cases">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">На обмене</div>
+                    <div class="stat-num blue-text" id="stat-ex">0 BC</div>
+                </div>
+            </div>
+            <div class="stat-list">
+                <div class="stat-item"><span>Кейс Бомж:</span> <b id="s-bomzh">0 BC</b></div>
+                <div class="stat-item"><span>Кейс Перекуп:</span> <b id="s-per">0 BC</b></div>
+                <div class="stat-item"><span>Кейс Владелец ТК:</span> <b id="s-tk">0 BC</b></div>
+            </div>
+        </div>
+
+        <div id="withdraw" class="page">
+            <h2 style="font-style: italic;">ВЫВОД GOLDS</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <input type="text" id="w-nick" placeholder="Nick_Name">
+                <select id="w-server">
+                    <option value="">ВЫБЕРИТЕ СЕРВЕР</option>
+                    </select>
+                <input type="number" id="w-sum" placeholder="Сумма (от 500 BC)">
+                <button class="btn-action" style="padding: 18px;" onclick="withdraw()">Вывести</button>
             </div>
         </div>
     </div>
 
-    <div id="page-cases" class="page">
-        <div class="case-card case-gray">
-            <div class="case-info">
-                <h3>Кейс «Бомж»</h3>
-                <p>Награда: 1-5 BC</p>
-            </div>
-            <button class="btn-red" onclick="openCase('bomzh', 0)">ОТКРЫТЬ</button>
+    <nav class="nav-bar">
+        <div class="nav-link active" onclick="nav('game', this)">
+            <span class="nav-icon">⚡</span>ИГРА
         </div>
-
-        <div class="case-card case-blue">
-            <div class="case-info">
-                <h3>Кейс «Перекуп»</h3>
-                <p>Награда: 25-50 BC</p>
-                <div class="case-progress" id="case-per-progress">Прогресс: 0/3 ADS</div>
-            </div>
-            <button class="btn-red" onclick="watchAd('per', 3)">СМОТРЕТЬ</button>
+        <div class="nav-link" onclick="nav('cases', this)">
+            <span class="nav-icon">📦</span>КЕЙСЫ
         </div>
-
-        <div class="case-card case-yellow">
-            <div class="case-info">
-                <h3>Кейс «Владелец ТК»</h3>
-                <p>Награда: 50-150 BC</p>
-                <div class="case-progress" id="case-tk-progress">Прогресс: 0/5 ADS</div>
-            </div>
-            <button class="btn-red" onclick="watchAd('tk', 5)">СМОТРЕТЬ</button>
+        <div class="nav-link" onclick="nav('stats', this)">
+            <span class="nav-icon">📊</span>СТАТА
         </div>
-    </div>
-
-    <div id="page-withdraw" class="page">
-        <h2 style="font-style: italic; text-transform: uppercase;">Вывод Golds</h2>
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 15px;">
-            <input type="text" placeholder="Nick_Name">
-            <select style="background: var(--card-bg); color: white; border: 1px solid #333; padding: 15px; border-radius: 12px;">
-                <option>СЕРВЕР</option>
-                <option>Red</option>
-                <option>Green</option>
-                <option>Black</option>
-            </select>
-            <input type="number" placeholder="Сумма (от 500 BC)">
-            <button class="btn-red" style="padding: 18px;">ВЫВЕСТИ</button>
-        </div>
-    </div>
-
-    <nav class="nav">
-        <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">⚡</span>
-            ИГРА
-        </div>
-        <div class="nav-item" onclick="showPage('cases', this)">
-            <span class="nav-icon">📦</span>
-            КЕЙСЫ
-        </div>
-        <div class="nav-item" onclick="showPage('withdraw', this)">
-            <span class="nav-icon">💸</span>
-            ВЫВОД
+        <div class="nav-link" onclick="nav('withdraw', this)">
+            <span class="nav-icon">💸</span>ВЫВОД
         </div>
     </nav>
 
@@ -227,69 +225,120 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let virts = parseInt(localStorage.getItem('virts')) || 0;
-        let bc = parseInt(localStorage.getItem('bc')) || 0;
-        let adProgress = { per: 0, tk: 0 };
+        // 90 Серверов
+        const servers = [
+            "RED [1]", "GREEN [2]", "BLUE [3]", "YELLOW [4]", "ORANGE [5]", "PURPLE [6]", "LIME [7]", "PINK [8]", "CHERRY [9]", "BLACK [10]",
+            "INDIGO [11]", "WHITE [12]", "MAGENTA [13]", "CRIMSON [14]", "GOLD [15]", "AZURE [16]", "PLATINUM [17]", "AQUA [18]", "GRAY [19]", "ICE [20]",
+            "CHILLI [21]", "CHOCO [22]", "MOSCOW [23]", "SPB [24]", "UFA [25]", "SOCHI [26]", "KAZAN [27]", "SAMARA [28]", "ROSTOV [29]", "ANAPA [30]",
+            "EKATERINBURG [31]", "KRASNODAR [32]", "ARZAMAS [33]", "NOVOSIBIRSK [34]", "GROZNY [35]", "SARATOV [36]", "OMSK [37]", "IRKUTSK [38]", "VOLGOGRAD [39]", "VORONEZH [40]",
+            "BELGOROD [41]", "MAKHACHKALA [42]", "VLADIKAVKAZ [43]", "VLADIVOSTOK [44]", "KALININGRAD [45]", "CHELYABINSK [46]", "KRASNOYARSK [47]", "CHEBOKSARY [48]", "KHABAROVSK [49]", "PERM [50]",
+            "TULA [51]", "RYAZAN [52]", "MURMANSK [53]", "PENZA [54]", "KURSK [55]", "ARKHANGELSK [56]", "ORENBURG [57]", "KIROV [58]", "KEMEROVO [59]", "TYUMEN [60]",
+            "TOLYATTI [61]", "IVANOVO [62]", "STAVROPOL [63]", "SMOLENSK [64]", "PSKOV [65]", "BRYANSK [66]", "OREL [67]", "YAROSLAVL [68]", "BARNAUL [69]", "LIPETSK [70]",
+            "ULYANOVSK [71]", "YAKUTSK [72]", "TAMBOV [73]", "BRATSK [74]", "ASTRAKHAN [75]", "CHITA [76]", "KOSTROMA [77]", "VLADIMIR [78]", "KALUGA [79]", "N.NOVGOROD [80]",
+            "TAGANROG [81]", "VOLOGDA [82]", "TVER [83]", "TOMSK [84]", "IZHEVSK [85]", "SURGUT [86]", "PODOLSK [87]", "MAGADAN [88]", "CHEREPOVETS [89]", "NORILSK [90]"
+        ];
 
-        function updateUI() {
-            document.getElementById('virt-balance').innerText = virts.toLocaleString();
-            document.getElementById('bc-balance').innerText = bc.toLocaleString();
-            localStorage.setItem('virts', virts);
-            localStorage.setItem('bc', bc);
+        // Состояние
+        let data = JSON.parse(localStorage.getItem('br_data')) || {
+            virts: 0, bc: 0, totalCases: 0, exBC: 0,
+            s_bomzh: 0, s_per: 0, s_tk: 0,
+            progPer: 0, progTk: 0
+        };
+
+        function save() {
+            localStorage.setItem('br_data', JSON.stringify(data));
+            document.getElementById('virts').innerText = data.virts.toLocaleString();
+            document.getElementById('bc').innerText = data.bc.toLocaleString();
+            
+            // Обновление статы
+            document.getElementById('stat-cases').innerText = data.totalCases;
+            document.getElementById('stat-ex').innerText = data.exBC + " BC";
+            document.getElementById('s-bomzh').innerText = data.s_bomzh + " BC";
+            document.getElementById('s-per').innerText = data.s_per + " BC";
+            document.getElementById('s-tk').innerText = data.s_tk + " BC";
         }
 
         function tap() {
-            virts += 10000; // Один тап = 10к для теста
-            updateUI();
+            data.virts += 10; // Исправлено: +10 за клик
             tg.HapticFeedback.impactOccurred('light');
+            save();
         }
 
-        function showPage(pageId, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
+        function nav(p, el) {
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
+            document.getElementById(p).classList.add('active');
             el.classList.add('active');
             tg.HapticFeedback.selectionChanged();
         }
 
         function exchange() {
-            let amount = parseInt(document.getElementById('ex-amount').value);
-            if (amount >= 1000000 && virts >= amount) {
-                let newBC = Math.floor(amount / 1000000);
-                virts -= amount;
-                bc += newBC;
-                updateUI();
-                tg.showAlert("Обмен успешно завершен! Получено: " + newBC + " BC");
+            let val = parseInt(document.getElementById('ex-val').value);
+            if (val >= 1000000 && data.virts >= val) {
+                let gain = Math.floor(val / 1000000);
+                data.virts -= val;
+                data.bc += gain;
+                data.exBC += gain;
+                save();
+                tg.showAlert("Успешный обмен! Получено: " + gain + " BC");
             } else {
-                tg.showAlert("Недостаточно вирт для обмена!");
+                tg.showAlert("Нужно минимум 1.000.000 ₽");
             }
         }
 
-        function watchAd(type, limit) {
-            // Пока имитация
-            adProgress[type]++;
-            document.getElementById('case-' + type + '-progress').innerText = `Прогресс: ${adProgress[type]}/${limit} ADS`;
-            
-            if (adProgress[type] >= limit) {
-                tg.showAlert("Реклама просмотрена! Кейс доступен.");
-                openCase(type);
-                adProgress[type] = 0;
-                document.getElementById('case-' + type + '-progress').innerText = `Прогресс: 0/${limit} ADS`;
+        function handleAd(type, max) {
+            // Имитация рекламы
+            if(type === 'per') {
+                data.progPer++;
+                if(data.progPer >= max) { openCase('per'); data.progPer = 0; }
+                document.getElementById('p-per').innerText = `Прогресс: ${data.progPer}/${max} ADS`;
+            } else {
+                data.progTk++;
+                if(data.progTk >= max) { openCase('tk'); data.progTk = 0; }
+                document.getElementById('p-tk').innerText = `Прогресс: ${data.progTk}/${max} ADS`;
             }
+            save();
         }
 
         function openCase(type) {
             let win = 0;
             if(type === 'bomzh') win = Math.floor(Math.random() * 5) + 1;
-            if(type === 'per') win = Math.floor(Math.random() * 25) + 25;
-            if(type === 'tk') win = Math.floor(Math.random() * 100) + 50;
+            if(type === 'per') win = Math.floor(Math.random() * 26) + 25;
+            if(type === 'tk') win = Math.floor(Math.random() * 101) + 50;
             
-            bc += win;
-            updateUI();
-            tg.showAlert(`Поздравляем! Вы выбили из кейса: ${win} BC`);
+            data.bc += win;
+            data.totalCases++;
+            data['s_' + type] += win;
+            save();
+            tg.showConfirm(`Вы выбили ${win} BC! Перейти в статистику?`, (ok) => {
+                if(ok) nav('stats', document.querySelectorAll('.nav-link')[2]);
+            });
         }
 
-        updateUI();
+        function withdraw() {
+            let nick = document.getElementById('w-nick').value;
+            let serv = document.getElementById('w-server').value;
+            let sum = parseInt(document.getElementById('w-sum').value);
+
+            if(!nick || !serv || serv === "ВЫБЕРИТЕ СЕРВЕР") return tg.showAlert("Заполните все поля!");
+            if(sum < 500) return tg.showAlert("Минимум 500 BC");
+            if(data.bc < sum) return tg.showAlert("Недостаточно BC на балансе");
+
+            data.bc -= sum;
+            save();
+            tg.showAlert(`Заявка создана!\nНик: ${nick}\nСервер: ${serv}\nСумма: ${sum} BC\nОжидайте зачисления от 1 до 24 часов.`);
+        }
+
+        // Заполнение серверов
+        const select = document.getElementById('w-server');
+        servers.forEach(s => {
+            let opt = document.createElement('option');
+            opt.value = s;
+            opt.innerHTML = s;
+            select.appendChild(opt);
+        });
+
+        save();
     </script>
 </body>
 </html>
