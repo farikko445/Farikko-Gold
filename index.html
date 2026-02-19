@@ -1,10 +1,295 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>My Mini App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Locus Gold / Farikko</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #121212;
+            --accent-red: #ff3b30;
+            --accent-blue: #007aff;
+            --accent-gold: #ffcc00;
+            --text-main: #ffffff;
+            --text-gray: #888888;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Шапка с балансом */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .header-item { display: flex; flex-direction: column; }
+        .label { color: var(--text-gray); font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .value { font-size: 24px; font-weight: 900; font-style: italic; }
+        .blue-text { color: var(--accent-blue); }
+
+        /* Контент страниц */
+        .page { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+        .page.active { display: flex; }
+
+        /* Главная: Кнопка клика */
+        .click-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .main-circle {
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, #222 0%, #000 70%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 50px rgba(255, 59, 48, 0.2);
+            border: 2px solid #1a1a1a;
+            position: relative;
+        }
+        .main-circle span { font-size: 80px; font-weight: 900; color: var(--accent-red); font-style: italic; }
+        
+        .exchange-info { margin-top: 40px; color: var(--accent-blue); font-weight: bold; font-size: 12px; }
+        .input-group { margin-top: 15px; width: 100%; display: flex; gap: 10px; }
+        input {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            flex-grow: 1;
+        }
+        .btn-red {
+            background: linear-gradient(to bottom, #ff4b2b, #ff416c);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 10px 25px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+        }
+
+        /* Кейсы */
+        .case-card {
+            background: var(--card-bg);
+            width: 100%;
+            border-radius: 25px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            border-left: 4px solid var(--accent-gray);
+        }
+        .case-info h3 { margin: 0; font-size: 18px; text-transform: uppercase; }
+        .case-info p { margin: 5px 0 0; color: var(--text-gray); font-size: 12px; }
+        .case-progress { color: var(--accent-blue); font-size: 11px; margin-top: 5px; }
+
+        /* Нижнее меню */
+        .nav {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 25px;
+            height: 70px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid #222;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-gray);
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+        .nav-item.active { color: var(--accent-red); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        /* Стили для вкладок */
+        .case-yellow { border-left-color: var(--accent-gold); }
+        .case-blue { border-left-color: var(--accent-blue); }
+        .case-gray { border-left-color: #555; }
+    </style>
 </head>
 <body>
-    <h1>Привет! Приложение работает.</h1>
+
+    <div class="header">
+        <div class="header-item">
+            <span class="label">Вирты</span>
+            <span class="value"><span id="virt-balance">0</span> ₽</span>
+        </div>
+        <div class="header-item" style="align-items: flex-end;">
+            <span class="label blue-text">Black Coins</span>
+            <span class="value blue-text"><span id="bc-balance">0</span></span>
+        </div>
+    </div>
+
+    <div id="page-game" class="page active">
+        <div class="click-area">
+            <div class="main-circle" onclick="tap()">
+                <span>BR</span>
+            </div>
+            <div class="exchange-info">ОБМЕН 1.000.000 ₽ НА 1 BC</div>
+            <div class="input-group">
+                <input type="number" id="ex-amount" placeholder="Сумма ₽">
+                <button class="btn-red" onclick="exchange()">ОБМЕН</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-cases" class="page">
+        <div class="case-card case-gray">
+            <div class="case-info">
+                <h3>Кейс «Бомж»</h3>
+                <p>Награда: 1-5 BC</p>
+            </div>
+            <button class="btn-red" onclick="openCase('bomzh', 0)">ОТКРЫТЬ</button>
+        </div>
+
+        <div class="case-card case-blue">
+            <div class="case-info">
+                <h3>Кейс «Перекуп»</h3>
+                <p>Награда: 25-50 BC</p>
+                <div class="case-progress" id="case-per-progress">Прогресс: 0/3 ADS</div>
+            </div>
+            <button class="btn-red" onclick="watchAd('per', 3)">СМОТРЕТЬ</button>
+        </div>
+
+        <div class="case-card case-yellow">
+            <div class="case-info">
+                <h3>Кейс «Владелец ТК»</h3>
+                <p>Награда: 50-150 BC</p>
+                <div class="case-progress" id="case-tk-progress">Прогресс: 0/5 ADS</div>
+            </div>
+            <button class="btn-red" onclick="watchAd('tk', 5)">СМОТРЕТЬ</button>
+        </div>
+    </div>
+
+    <div id="page-withdraw" class="page">
+        <h2 style="font-style: italic; text-transform: uppercase;">Вывод Golds</h2>
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" placeholder="Nick_Name">
+            <select style="background: var(--card-bg); color: white; border: 1px solid #333; padding: 15px; border-radius: 12px;">
+                <option>СЕРВЕР</option>
+                <option>Red</option>
+                <option>Green</option>
+                <option>Black</option>
+            </select>
+            <input type="number" placeholder="Сумма (от 500 BC)">
+            <button class="btn-red" style="padding: 18px;">ВЫВЕСТИ</button>
+        </div>
+    </div>
+
+    <nav class="nav">
+        <div class="nav-item active" onclick="showPage('game', this)">
+            <span class="nav-icon">⚡</span>
+            ИГРА
+        </div>
+        <div class="nav-item" onclick="showPage('cases', this)">
+            <span class="nav-icon">📦</span>
+            КЕЙСЫ
+        </div>
+        <div class="nav-item" onclick="showPage('withdraw', this)">
+            <span class="nav-icon">💸</span>
+            ВЫВОД
+        </div>
+    </nav>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let virts = parseInt(localStorage.getItem('virts')) || 0;
+        let bc = parseInt(localStorage.getItem('bc')) || 0;
+        let adProgress = { per: 0, tk: 0 };
+
+        function updateUI() {
+            document.getElementById('virt-balance').innerText = virts.toLocaleString();
+            document.getElementById('bc-balance').innerText = bc.toLocaleString();
+            localStorage.setItem('virts', virts);
+            localStorage.setItem('bc', bc);
+        }
+
+        function tap() {
+            virts += 10000; // Один тап = 10к для теста
+            updateUI();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function showPage(pageId, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            el.classList.add('active');
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        function exchange() {
+            let amount = parseInt(document.getElementById('ex-amount').value);
+            if (amount >= 1000000 && virts >= amount) {
+                let newBC = Math.floor(amount / 1000000);
+                virts -= amount;
+                bc += newBC;
+                updateUI();
+                tg.showAlert("Обмен успешно завершен! Получено: " + newBC + " BC");
+            } else {
+                tg.showAlert("Недостаточно вирт для обмена!");
+            }
+        }
+
+        function watchAd(type, limit) {
+            // Пока имитация
+            adProgress[type]++;
+            document.getElementById('case-' + type + '-progress').innerText = `Прогресс: ${adProgress[type]}/${limit} ADS`;
+            
+            if (adProgress[type] >= limit) {
+                tg.showAlert("Реклама просмотрена! Кейс доступен.");
+                openCase(type);
+                adProgress[type] = 0;
+                document.getElementById('case-' + type + '-progress').innerText = `Прогресс: 0/${limit} ADS`;
+            }
+        }
+
+        function openCase(type) {
+            let win = 0;
+            if(type === 'bomzh') win = Math.floor(Math.random() * 5) + 1;
+            if(type === 'per') win = Math.floor(Math.random() * 25) + 25;
+            if(type === 'tk') win = Math.floor(Math.random() * 100) + 50;
+            
+            bc += win;
+            updateUI();
+            tg.showAlert(`Поздравляем! Вы выбили из кейса: ${win} BC`);
+        }
+
+        updateUI();
+    </script>
 </body>
 </html>
